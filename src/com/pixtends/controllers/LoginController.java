@@ -1,5 +1,6 @@
 package com.pixtends.controllers;
 
+import com.pixtends.helpers.DBHandler;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -13,6 +14,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class LoginController {
@@ -33,6 +36,16 @@ public class LoginController {
 
     @FXML
     void initialize() {
+        DBHandler dbHandler = new DBHandler();
+        try {
+            Connection connection = dbHandler.getConnection();
+        } catch (SQLException e) {
+            // todo disable login button if something goes wrong here
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         loginButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {

@@ -6,13 +6,19 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -33,8 +39,8 @@ public class CardListController {
     void initialize() {
         // prepare a list of cards (will come from a DB later on)
         ObservableList<Card> cards = FXCollections.observableArrayList(
-                new Card("This is a question", "This is an answer"),
-                new Card("Pom pom pom", "Nah nah nah")
+//                new Card("This is a question", "This is an answer"),
+//                new Card("Pom pom pom", "Nah nah nah")
         );
 
         TableColumn<Card, String> questionColumn = new TableColumn<>("Question");
@@ -47,25 +53,44 @@ public class CardListController {
         TableColumn<Card, String> actionsColumn = new TableColumn<>("");
         actionsColumn.setSortable(false);
 
-        actionsColumn.setCellFactory(tc -> {
-            final Image editIcon = new Image("assets/images/edit.png");
-            TableCell<Card, String> cell = new TableCell<Card, String>() {
-                ImageView imageView = new ImageView();
+        actionsColumn.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell call(TableColumn p) {
+                final Image editIcon = new Image("assets/images/edit.png");
+                TableCell<Card, String> cell = new TableCell<Card, String>() {
+                    ImageView imageView = new ImageView();
 
-                @Override
-                protected void updateItem(String active, boolean empty) {
-                    super.updateItem(active, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        imageView.setFitWidth(15);
-                        imageView.setFitHeight(15);
-                        imageView.setImage(editIcon);
-                        setGraphic(imageView);
+                    @Override
+                    protected void updateItem(String active, boolean empty) {
+                        super.updateItem(active, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            imageView.setFitWidth(15);
+                            imageView.setFitHeight(15);
+                            imageView.setImage(editIcon);
+                            setGraphic(imageView);
+                        }
                     }
-                }
-            };
-            return cell ;
+                };
+                cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent mouseEvent) {
+                        Stage cardDetailsStage = new Stage();
+                        try {
+                            Parent root = FXMLLoader.load(getClass().getResource("../views/cardDetails.fxml"));
+                            Scene cardDetailsScene = new Scene(root);
+                            cardDetailsStage.setTitle("Trivial Pursuit - Edit Card");
+                            cardDetailsStage.setScene(cardDetailsScene);
+                            cardDetailsStage.initModality(Modality.APPLICATION_MODAL);
+                            cardDetailsStage.show();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                return cell;
+            }
         });
 
         cardListTableView.getColumns().addAll(questionColumn, answerColumn, typeColumn, publishedColumn, actionsColumn);
