@@ -1,6 +1,6 @@
 package com.pixtends.controllers;
 
-import com.pixtends.helpers.DBHandler;
+import com.pixtends.services.AuthService;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
@@ -34,30 +33,35 @@ public class LoginController {
     @FXML
     private PasswordField passwordField;
 
+    private AuthService authService;
+
+    public LoginController() {
+        authService = new AuthService();
+    }
+
     @FXML
     void initialize() {
-        DBHandler dbHandler = new DBHandler();
-        try {
-            Connection connection = dbHandler.getConnection();
-        } catch (SQLException e) {
-            // todo disable login button if something goes wrong here
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         loginButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                loginButton.getScene().getWindow().hide();
-                Stage cardListStage = new Stage();
                 try {
+                    if (!authService.login(usernameField.getText(), passwordField.getText())) {
+                        // todo error text field
+                        System.out.println("Login information not recognised");
+                        return;
+                    }
+                    loginButton.getScene().getWindow().hide();
+                    Stage cardListStage = new Stage();
                     Parent root = FXMLLoader.load(getClass().getResource("../views/cardList.fxml"));
                     Scene cardListScene = new Scene(root);
                     cardListStage.setTitle("Trivial Pursuit - Admin Panel");
                     cardListStage.setScene(cardListScene);
                     cardListStage.show();
+                } catch (SQLException e) {
+                    System.out.println("Login unsuccessful");
+                    e.printStackTrace();
                 } catch (IOException e) {
+                    System.out.println("Error FXML");
                     e.printStackTrace();
                 }
             }
