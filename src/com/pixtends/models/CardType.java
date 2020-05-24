@@ -1,24 +1,25 @@
 package com.pixtends.models;
 
 public class CardType {
-    private String domain;
+    private int id;
+    private String name;
     private String color;
 
-    enum Type {
-        GEOGRAPHY,
-        ENTERTAINMENT,
-        HISTORY,
-        ARTS_LITERATURE,
-        SCIENCES_NATURE,
-        SPORTS_HOBBIES
-    }
-
-    public CardType(String domain, String color) {
-        this.domain = domain;
+    public CardType(int id, String domain, String color) {
+        this.id = id;
+        this.name = domain;
         this.color = color;
     }
 
-    public String getDomain() {
-        return domain;
+    public String getName() {
+        return name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getColor() {
+        return color;
     }
 }

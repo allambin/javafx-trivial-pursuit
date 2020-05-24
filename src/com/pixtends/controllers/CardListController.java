@@ -1,9 +1,11 @@
 package com.pixtends.controllers;
 
 import com.pixtends.models.Card;
-import javafx.beans.value.ObservableValue;
+import com.pixtends.models.CardType;
+import com.pixtends.repositories.CardRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -36,13 +38,30 @@ public class CardListController {
     private TableView<Card> cardListTableView;
 
     @FXML
-    void initialize() {
-        // prepare a list of cards (will come from a DB later on)
-        ObservableList<Card> cards = FXCollections.observableArrayList(
-//                new Card("This is a question", "This is an answer"),
-//                new Card("Pom pom pom", "Nah nah nah")
-        );
+    private Button newButton;
 
+    private CardRepository cardRepository;
+
+    public CardListController() {
+        cardRepository = new CardRepository();
+    }
+
+    @FXML
+    void initialize() {
+        newButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                openEditWindow();
+            }
+        });
+
+        ObservableList<Card> cards = FXCollections.observableArrayList();
+        cards.addAll(cardRepository.findAll());
+        initCardListTableView();
+        cardListTableView.setItems(cards);
+    }
+
+    private void initCardListTableView() {
         TableColumn<Card, String> questionColumn = new TableColumn<>("Question");
         questionColumn.setCellValueFactory(new PropertyValueFactory<Card, String>("question"));
         TableColumn<Card, String> answerColumn = new TableColumn<>("Answer");
@@ -76,17 +95,7 @@ public class CardListController {
                 cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent mouseEvent) {
-                        Stage cardDetailsStage = new Stage();
-                        try {
-                            Parent root = FXMLLoader.load(getClass().getResource("../views/cardDetails.fxml"));
-                            Scene cardDetailsScene = new Scene(root);
-                            cardDetailsStage.setTitle("Trivial Pursuit - Edit Card");
-                            cardDetailsStage.setScene(cardDetailsScene);
-                            cardDetailsStage.initModality(Modality.APPLICATION_MODAL);
-                            cardDetailsStage.show();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        openEditWindow();
                     }
                 });
                 return cell;
@@ -94,30 +103,20 @@ public class CardListController {
         });
 
         cardListTableView.getColumns().addAll(questionColumn, answerColumn, typeColumn, publishedColumn, actionsColumn);
-        cardListTableView.setItems(cards);
         cardListTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    }
 
-        Callback<TableColumn<Card, String>, TableCell<Card, String>> cellFactory =
-                new Callback<>() {
-                    @Override
-                    public TableCell call(TableColumn p) {
-                        TableCell cell = new TableCell() {
-                            @Override
-                            protected void updateItem(Object o, boolean empty) {
-                                super.updateItem(o, empty);
-                                setText(empty ? null : getItem() == null ? "" : getItem().toString());
-                                setGraphic(null);
-                            }
-                        };
-                        cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-                            @Override
-                            public void handle(MouseEvent mouseEvent) {
-                                System.out.println("Click");
-                            }
-                        });
-                        return cell;
-                    }
-                };
-        questionColumn.setCellFactory(cellFactory);
+    private void openEditWindow() {
+        Stage cardDetailsStage = new Stage();
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("../views/cardDetails.fxml"));
+            Scene cardDetailsScene = new Scene(root);
+            cardDetailsStage.setTitle("Trivial Pursuit - Edit Card");
+            cardDetailsStage.setScene(cardDetailsScene);
+            cardDetailsStage.initModality(Modality.APPLICATION_MODAL);
+            cardDetailsStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
