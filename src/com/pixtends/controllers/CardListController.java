@@ -1,10 +1,14 @@
 package com.pixtends.controllers;
 
+import com.pixtends.helpers.TypeStringConverter;
 import com.pixtends.models.Card;
 import com.pixtends.models.CardType;
 import com.pixtends.repositories.CardRepository;
+import com.pixtends.repositories.CardTypeRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -19,6 +23,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 import java.io.IOException;
 import java.net.URL;
@@ -32,7 +37,7 @@ public class CardListController {
     private URL location;
 
     @FXML
-    private ComboBox<?> typeComboBox;
+    private ComboBox<CardType> typeComboBox;
 
     @FXML
     private TableView<Card> cardListTableView;
@@ -41,8 +46,11 @@ public class CardListController {
     private Button newButton;
 
     private CardRepository cardRepository;
+    private CardTypeRepository cardTypeRepository;
+    private ObservableList<Card> cardsList = FXCollections.observableArrayList();
 
     public CardListController() {
+        cardTypeRepository = new CardTypeRepository();
         cardRepository = new CardRepository();
     }
 
@@ -55,10 +63,13 @@ public class CardListController {
             }
         });
 
-        ObservableList<Card> cards = FXCollections.observableArrayList();
-        cards.addAll(cardRepository.findAll());
+        ObservableList<CardType> cardTypes = FXCollections.observableArrayList();
+        cardTypes.addAll(cardTypeRepository.findAll());
+        cardTypes.add(0, null);
+        typeComboBox.setItems(cardTypes);
+        typeComboBox.setConverter(new TypeStringConverter(typeComboBox));
+
         initCardListTableView();
-        cardListTableView.setItems(cards);
     }
 
     private void initCardListTableView() {
@@ -67,8 +78,8 @@ public class CardListController {
         TableColumn<Card, String> answerColumn = new TableColumn<>("Answer");
         answerColumn.setCellValueFactory(new PropertyValueFactory<Card, String>("answer"));
         TableColumn<Card, String> typeColumn = new TableColumn<>("Type");
+        typeColumn.setCellValueFactory(new PropertyValueFactory<Card, String>("typeName"));
         TableColumn<Card, String> publishedColumn = new TableColumn<>("Published");
-
         TableColumn<Card, String> actionsColumn = new TableColumn<>("");
         actionsColumn.setSortable(false);
 
@@ -104,6 +115,24 @@ public class CardListController {
 
         cardListTableView.getColumns().addAll(questionColumn, answerColumn, typeColumn, publishedColumn, actionsColumn);
         cardListTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        cardsList.addAll(cardRepository.findAll());
+        FilteredList<Card> filteredData = new FilteredList<>(cardsList, p -> true);
+        typeComboBox.getSelectionModel().selectedItemProperty().addListener( (options, oldValue, newValue) -> {
+            filteredData.setPredicate(card -> {
+                // If filter text is empty, display all persons.
+                if (newValue == null) {
+                    return true;
+                }
+
+                // Compare first name and last name of every person with filter text.
+                String lowerCaseFilter = newValue.getName().toLowerCase();
+                return card.getTypeName().toLowerCase().contains(lowerCaseFilter);
+            });
+        });
+        SortedList<Card> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(cardListTableView.comparatorProperty());
+        cardListTableView.setItems(sortedData);
     }
 
     private void openEditWindow() {
@@ -118,5 +147,22 @@ public class CardListController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void refreshCardListTableView() {
+        cardsList.clear();
+        cardsList.addAll(cardRepository.findAll());
+        cardListTableView.setItems(cardsList);
+//        Platform.runLater(() -> {
+//            ObservableList<Card> cards = FXCollections.observableArrayList();
+//            cards.addAll(cardRepository.findAll());
+////            cardListTableView.setItems(null);
+////            cardListTableView.layout();
+//            cardListTableView.setItems(cards);
+//
+//            cardListTableView.getColumns().get(0).setVisible(false);
+//            cardListTableView.getColumns().get(0).setVisible(true);
+//
+//        });
     }
 }

@@ -1,19 +1,21 @@
 package com.pixtends.controllers;
 
-import com.pixtends.models.Card;
+import com.pixtends.helpers.TypeStringConverter;
 import com.pixtends.models.CardType;
 import com.pixtends.repositories.CardRepository;
 import com.pixtends.repositories.CardTypeRepository;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.util.StringConverter;
-
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -51,27 +53,26 @@ public class CardDetailsController {
         cardTypes.addAll(cardTypeRepository.findAll());
         typeComboBox.setItems(cardTypes);
         typeComboBox.getSelectionModel().selectFirst();
-        typeComboBox.setConverter(new StringConverter<CardType>() {
-            @Override
-            public String toString(CardType cardType) {
-                return cardType == null ? null : cardType.getName();
-            }
+        typeComboBox.setConverter(new TypeStringConverter(typeComboBox));
 
-            @Override
-            public CardType fromString(String s) {
-                return typeComboBox.getItems().stream().filter(ct ->
-                        ct.getName().equals(s)).findFirst().orElse(null);
-            }
-        });
-
-        questionTextArea.requestFocus();
         saveButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
                 // save the new card
+                // todo try/catch here?
                 cardRepository.create(questionTextArea.getText(), answerTextArea.getText(), typeComboBox.getSelectionModel().getSelectedItem());
                 saveButton.getScene().getWindow().hide();
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cardList.fxml"));
+                    loader.load();
+                    CardListController controller = loader.getController();
+                    controller.refreshCardListTableView();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
+
+        Platform.runLater(() -> questionTextArea.requestFocus());
     }
 }

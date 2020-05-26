@@ -8,8 +8,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -33,6 +36,9 @@ public class LoginController {
     @FXML
     private PasswordField passwordField;
 
+    @FXML
+    private Label errorLabel;
+
     private AuthService authService;
 
     public LoginController() {
@@ -41,30 +47,55 @@ public class LoginController {
 
     @FXML
     void initialize() {
-        loginButton.setOnAction(new EventHandler<ActionEvent>() {
+        errorLabel.setVisible(false);
+        passwordField.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
-            public void handle(ActionEvent actionEvent) {
-                try {
-                    if (!authService.login(usernameField.getText(), passwordField.getText())) {
-                        // todo error text field
-                        System.out.println("Login information not recognised");
-                        return;
-                    }
-                    loginButton.getScene().getWindow().hide();
-                    Stage cardListStage = new Stage();
-                    Parent root = FXMLLoader.load(getClass().getResource("../views/cardList.fxml"));
-                    Scene cardListScene = new Scene(root);
-                    cardListStage.setTitle("Trivial Pursuit - Admin Panel");
-                    cardListStage.setScene(cardListScene);
-                    cardListStage.show();
-                } catch (SQLException e) {
-                    System.out.println("Login unsuccessful");
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    System.out.println("Error FXML");
-                    e.printStackTrace();
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.ENTER)  {
+                    loginAction();
                 }
             }
         });
+        usernameField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.ENTER)  {
+                    loginAction();
+                }
+            }
+        });
+        loginButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                loginAction();
+            }
+        });
+    }
+
+    private void displayError(String error) {
+        errorLabel.setText(error);
+        errorLabel.setVisible(true);
+    }
+
+    private void loginAction() {
+        try {
+            if (!authService.login(usernameField.getText(), passwordField.getText())) {
+                displayError("Login information not recognised");
+                return;
+            }
+            loginButton.getScene().getWindow().hide();
+            Stage cardListStage = new Stage();
+            Parent root = FXMLLoader.load(getClass().getResource("../views/cardList.fxml"));
+            Scene cardListScene = new Scene(root);
+            cardListStage.setTitle("Trivial Pursuit - Admin Panel");
+            cardListStage.setScene(cardListScene);
+            cardListStage.show();
+        } catch (SQLException e) {
+            displayError("Login unsuccessful");
+            e.printStackTrace();
+        } catch (IOException e) {
+            displayError("Unable to find FXML view");
+            e.printStackTrace();
+        }
     }
 }
