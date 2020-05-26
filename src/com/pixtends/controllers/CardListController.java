@@ -23,7 +23,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 import java.io.IOException;
 import java.net.URL;
@@ -59,7 +58,7 @@ public class CardListController {
         newButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                openEditWindow();
+                openEditWindow(null);
             }
         });
 
@@ -106,7 +105,11 @@ public class CardListController {
                 cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent mouseEvent) {
-                        openEditWindow();
+                        Card selectedItem = null;
+                        if (cardListTableView.getSelectionModel().getSelectedItem() != null) {
+                            selectedItem = cardListTableView.getSelectionModel().getSelectedItem();
+                        }
+                        openEditWindow(selectedItem);
                     }
                 });
                 return cell;
@@ -135,10 +138,16 @@ public class CardListController {
         cardListTableView.setItems(sortedData);
     }
 
-    private void openEditWindow() {
+    private void openEditWindow(Card card) {
         Stage cardDetailsStage = new Stage();
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("../views/cardDetails.fxml"));
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cardList.fxml"));
+//            loader.load();
+//            CardListController controller = loader.getController();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cardDetails.fxml"));
+            Parent root = loader.load();
+            CardDetailsController controller = loader.getController();
+            controller.setEditingCard(card);
             Scene cardDetailsScene = new Scene(root);
             cardDetailsStage.setTitle("Trivial Pursuit - Edit Card");
             cardDetailsStage.setScene(cardDetailsScene);

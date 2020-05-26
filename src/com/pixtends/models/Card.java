@@ -32,4 +32,20 @@ public class Card {
     public String getTypeName() {
         return type.getName();
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setQuestion(String question) {
+        this.question = question;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
+    }
+
+    public void setType(CardType type) {
+        this.type = type;
+    }
 }

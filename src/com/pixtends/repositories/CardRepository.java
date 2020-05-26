@@ -54,4 +54,20 @@ public class CardRepository {
         }
         return false;
     }
+
+    public boolean update(Card card) {
+        String query = "UPDATE cards SET question = ?, answer = ?, type_id = ? WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, card.getQuestion());
+            ps.setString(2, card.getAnswer());
+            ps.setInt(3, card.getType().getId());
+            ps.setInt(4, card.getId());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

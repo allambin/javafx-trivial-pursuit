@@ -10,7 +10,7 @@
    <children>
       <ComboBox fx:id="typeComboBox" layoutX="245.0" layoutY="26.0" prefWidth="150.0" />
       <Label layoutX="160.0" layoutY="30.0" text="Filter by type:" />
-      <TableView fx:id="cardListTableView" layoutX="32.0" layoutY="84.0" prefHeight="200.0" prefWidth="400.0" />
-      <Button fx:id="newButton" layoutX="456.0" layoutY="84.0" mnemonicParsing="false" text="New Card" />
+      <TableView fx:id="cardListTableView" layoutX="32.0" layoutY="84.0" prefHeight="250.0" prefWidth="500.0" />
+      <Button fx:id="newButton" layoutX="32.0" layoutY="51.0" mnemonicParsing="false" text="New Card" />
    </children>
 </AnchorPane>
