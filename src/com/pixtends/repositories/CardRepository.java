@@ -70,4 +70,16 @@ public class CardRepository {
         }
         return false;
     }
+
+    public boolean delete(int id) {
+        String query = "DELETE FROM cards WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, id);
+            return ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

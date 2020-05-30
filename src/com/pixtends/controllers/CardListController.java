@@ -6,6 +6,7 @@ import com.pixtends.models.CardType;
 import com.pixtends.repositories.CardRepository;
 import com.pixtends.repositories.CardTypeRepository;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -26,6 +27,8 @@ import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class CardListController {
@@ -44,21 +47,44 @@ public class CardListController {
     @FXML
     private Button newButton;
 
+    @FXML
+    private Button deleteButton;
+
     private CardRepository cardRepository;
     private CardTypeRepository cardTypeRepository;
     private ObservableList<Card> cardsList = FXCollections.observableArrayList();
+    private ArrayList<Card> selectedCards;
+    private Alert alert;
 
     public CardListController() {
         cardTypeRepository = new CardTypeRepository();
         cardRepository = new CardRepository();
+        selectedCards = new ArrayList<>();
+        alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm");
+        alert.setHeaderText("Delete selected cards");
+        alert.setContentText("Those cards will be deleted forever, please confirm the action.");
     }
 
     @FXML
     void initialize() {
+        deleteButton.setDisable(true);
         newButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
                 openEditWindow(null);
+            }
+        });
+        deleteButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK){
+                    selectedCards.forEach((c) -> cardRepository.delete(c.getId()));
+                    selectedCards.clear();
+                } else {
+                    alert.hide();
+                }
             }
         });
 
@@ -69,9 +95,22 @@ public class CardListController {
         typeComboBox.setConverter(new TypeStringConverter(typeComboBox));
 
         initCardListTableView();
+
+        cardListTableView.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Card>() {
+            public void onChanged(ListChangeListener.Change<? extends Card> c) {
+                selectedCards.clear();
+                selectedCards.addAll(c.getList());
+                if (!selectedCards.isEmpty()) {
+                    deleteButton.setDisable(false);
+                } else {
+                    deleteButton.setDisable(true);
+                }
+            }
+        });
     }
 
     private void initCardListTableView() {
+        cardListTableView.setEditable(false);
         TableColumn<Card, String> questionColumn = new TableColumn<>("Question");
         questionColumn.setCellValueFactory(new PropertyValueFactory<Card, String>("question"));
         TableColumn<Card, String> answerColumn = new TableColumn<>("Answer");
@@ -117,7 +156,7 @@ public class CardListController {
         });
 
         cardListTableView.getColumns().addAll(questionColumn, answerColumn, typeColumn, publishedColumn, actionsColumn);
-        cardListTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        cardListTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         cardsList.addAll(cardRepository.findAll());
         FilteredList<Card> filteredData = new FilteredList<>(cardsList, p -> true);
@@ -141,9 +180,6 @@ public class CardListController {
     private void openEditWindow(Card card) {
         Stage cardDetailsStage = new Stage();
         try {
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cardList.fxml"));
-//            loader.load();
-//            CardListController controller = loader.getController();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cardDetails.fxml"));
             Parent root = loader.load();
             CardDetailsController controller = loader.getController();
