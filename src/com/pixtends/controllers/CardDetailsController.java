@@ -54,7 +54,6 @@ public class CardDetailsController {
         ObservableList<CardType> cardTypes = FXCollections.observableArrayList();
         cardTypes.addAll(cardTypeRepository.findAll());
         typeComboBox.setItems(cardTypes);
-//        typeComboBox.getSelectionModel().selectFirst();
         typeComboBox.setConverter(new TypeStringConverter(typeComboBox));
 
         saveButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -66,8 +65,6 @@ public class CardDetailsController {
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cardList.fxml"));
                     loader.load();
-                    CardListController controller = loader.getController();
-                    controller.refreshCardListTableView();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="400.0" prefWidth="550.0" style="-fx-background-color: #546e7a;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pixtends.controllers.CardListController">
+<AnchorPane id="anchorPane" fx:id="anchorPane" prefHeight="400.0" prefWidth="550.0" style="-fx-background-color: #546e7a;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pixtends.controllers.CardListController">
    <children>
       <ComboBox fx:id="typeComboBox" layoutX="375.0" layoutY="78.0" prefWidth="150.0" />
       <Label layoutX="293.0" layoutY="82.0" text="Filter by type:" textFill="WHITE" />

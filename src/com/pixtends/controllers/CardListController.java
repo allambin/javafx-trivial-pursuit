@@ -5,6 +5,9 @@ import com.pixtends.models.Card;
 import com.pixtends.models.CardType;
 import com.pixtends.repositories.CardRepository;
 import com.pixtends.repositories.CardTypeRepository;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -21,6 +24,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -37,6 +41,9 @@ public class CardListController {
 
     @FXML
     private URL location;
+
+    @FXML
+    private AnchorPane anchorPane;
 
     @FXML
     private ComboBox<CardType> typeComboBox;
@@ -78,10 +85,14 @@ public class CardListController {
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
+                // need a cache as the dialog remove the tableView selection
+                ArrayList<Card> cachedSelectedCards = new ArrayList<>(selectedCards);
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK){
-                    selectedCards.forEach((c) -> cardRepository.delete(c.getId()));
+                    cachedSelectedCards.forEach((c) -> cardRepository.delete(c.getId()));
                     selectedCards.clear();
+                    cardsList.clear();
+                    cardsList.addAll(cardRepository.findAll());
                 } else {
                     alert.hide();
                 }
@@ -105,6 +116,23 @@ public class CardListController {
                 } else {
                     deleteButton.setDisable(true);
                 }
+            }
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = anchorPane.getScene();
+            if (scene != null) {
+                Stage stage = (Stage) anchorPane.getScene().getWindow();
+                stage.focusedProperty().addListener(new ChangeListener<Boolean>()
+                {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> observableValue, Boolean oldValue, Boolean newValue) {
+                        if (newValue) {
+                            cardsList.clear();
+                            cardsList.addAll(cardRepository.findAll());
+                        }
+                    }
+                });
             }
         });
     }
@@ -192,22 +220,5 @@ public class CardListController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void refreshCardListTableView() {
-        cardsList.clear();
-        cardsList.addAll(cardRepository.findAll());
-        cardListTableView.setItems(cardsList);
-//        Platform.runLater(() -> {
-//            ObservableList<Card> cards = FXCollections.observableArrayList();
-//            cards.addAll(cardRepository.findAll());
-////            cardListTableView.setItems(null);
-////            cardListTableView.layout();
-//            cardListTableView.setItems(cards);
-//
-//            cardListTableView.getColumns().get(0).setVisible(false);
-//            cardListTableView.getColumns().get(0).setVisible(true);
-//
-//        });
     }
 }
